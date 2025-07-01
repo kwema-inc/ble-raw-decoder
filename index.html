@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Decodificador RAW BLE (iBeacon-like)</title>
+</head>
+<body>
+  <h1>Decodificador RAW BLE</h1>
+  <label for="raw">RAW HEX (sin espacios):</label><br>
+  <textarea id="raw" rows="4" cols="80" placeholder="Ej: 4C0002154B57454D413234303630303030304541123456789ABC"></textarea><br><br>
+  <button onclick="decode()">Decodificar</button>
+
+  <h2>Decodificación:</h2>
+  <table border="1" cellpadding="8" id="resultTable">
+    <thead>
+      <tr><th>Campo</th><th>Bytes (índice)</th><th>Hex</th><th>Comentario</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    function decode() {
+      const rawHex = document.getElementById("raw").value.trim().toUpperCase().replace(/[^A-F0-9]/g, '');
+      const bytes = rawHex.match(/.{2}/g)?.map((b, i) => ({
+        index: i,
+        value: b,
+        int: parseInt(b, 16)
+      }));
+
+      const table = document.querySelector("#resultTable tbody");
+      table.innerHTML = '';
+
+      if (!bytes || bytes.length < 25) {
+        alert("RAW muy corto. Se requieren al menos 25 bytes para iBeacon.");
+        return;
+      }
+
+      function getRange(start, length) {
+        return bytes.slice(start, start + length).map(b => b.value).join(' ');
+      }
+
+      function getInt16(start) {
+        return (bytes[start].int << 8) | bytes[start + 1].int;
+      }
+
+      function getSignedInt8(index) {
+        let val = bytes[index].int;
+        return val > 127 ? val - 256 : val;
+      }
+
+      const rows = [
+        ["Fabricante ID", "0-1", getRange(0, 2), bytes[0].value + bytes[1].value === "4C00" ? "Apple (0x4C00)" : ""],
+        ["Tipo / Longitud", "2-3", getRange(2, 2), bytes[2].value + bytes[3].value === "0215" ? "iBeacon (0x0215)" : ""],
+        ["UUID", "4-19", getRange(4, 16), ""],
+        ["Major", "20-21", getRange(20, 2), `Decimal: ${getInt16(20)}`],
+        ["Minor", "22-23", getRange(22, 2), `Decimal: ${getInt16(22)}`],
+        ["Tx Power", "24", getRange(24, 1), `Signed int8: ${getSignedInt8(24)} dBm`]
+      ];
+
+      rows.forEach(([campo, rango, hex, comentario]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${campo}</td><td>${rango}</td><td>${hex}</td><td>${comentario}</td>`;
+        table.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
