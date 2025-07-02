@@ -38,6 +38,24 @@
         return;
       }
 
+      // Buscar estructura iBeacon válida
+      const ibeaconStart = bytes.findIndex((b, i) =>
+        b.value === "FF" &&
+        bytes[i+1]?.value === "4C" &&
+        bytes[i+3]?.value === "02" &&
+        bytes[i+4]?.value === "15"
+      );
+
+      if (ibeaconStart === -1 || bytes.length < ibeaconStart + 30) {
+        alert("No se encontró una estructura iBeacon válida.");
+        return;
+      }
+
+      const uuidStart = ibeaconStart + 5;     // después de 0x15
+      const majorStart = uuidStart + 16;
+      const minorStart = majorStart + 2;
+      const txPowerIndex = minorStart + 2;
+
       function getRange(start, length) {
         return bytes.slice(start, start + length).map(b => b.value).join(' ');
       }
@@ -54,23 +72,21 @@
       function formatUUID(start) {
         const hex = bytes.slice(start, start + 16).map(b => b.value).join('');
         return [
-          hex.slice(0,8),
-          hex.slice(8,12),
-          hex.slice(12,16),
-          hex.slice(16,20),
+          hex.slice(0, 8),
+          hex.slice(8, 12),
+          hex.slice(12, 16),
+          hex.slice(16, 20),
           hex.slice(20)
         ].join('-');
       }
 
       const rows = [
-        ["Flags", "0-2", getRange(0, 3), ""],
-        ["Longitud + Tipo", "3", getRange(3, 1), "0x1A = 26 bytes de datos"],
-        ["Fabricante ID", "4-5", getRange(4, 2), bytes[4].value + bytes[5].value === "4C00" ? "Apple (0x004C)" : ""],
-        ["iBeacon Tipo / Longitud", "6-7", getRange(6, 2), bytes[6].value + bytes[7].value === "0215" ? "iBeacon (0x0215)" : ""],
-        ["UUID", "8-23", getRange(8, 16), `UUID: ${formatUUID(8)}`],
-        ["Major", "24-25", getRange(24, 2), `Decimal: ${getInt16(24)}`],
-        ["Minor", "26-27", getRange(26, 2), `Decimal: ${getInt16(26)}`],
-        ["Tx Power", "28", getRange(28, 1), `Signed int8: ${getSignedInt8(28)} dBm`]
+        ["Fabricante ID", `${ibeaconStart + 1}-${ibeaconStart + 2}`, getRange(ibeaconStart + 1, 2), "Apple (0x004C)"],
+        ["iBeacon Tipo / Longitud", `${ibeaconStart + 3}-${ibeaconStart + 4}`, getRange(ibeaconStart + 3, 2), "Tipo: 0x02, Longitud: 0x15"],
+        ["UUID", `${uuidStart}-${uuidStart + 15}`, getRange(uuidStart, 16), `UUID: ${formatUUID(uuidStart)}`],
+        ["Major", `${majorStart}-${majorStart + 1}`, getRange(majorStart, 2), `Decimal: ${getInt16(majorStart)}`],
+        ["Minor", `${minorStart}-${minorStart + 1}`, getRange(minorStart, 2), `Decimal: ${getInt16(minorStart)}`],
+        ["Tx Power", `${txPowerIndex}`, getRange(txPowerIndex, 1), `Signed int8: ${getSignedInt8(txPowerIndex)} dBm`]
       ];
 
       rows.forEach(([campo, rango, hex, comentario]) => {
