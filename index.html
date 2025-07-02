@@ -46,10 +46,10 @@
         bytes[i+4]?.value === "15"
       );
 
-      if (ibeaconStart === -1 || bytes.length < ibeaconStart + 30) {
-        alert("No se encontró una estructura iBeacon válida.");
-        return;
-      }
+      //if (ibeaconStart === -1 || bytes.length < ibeaconStart + 30) {
+      //  alert("No se encontró una estructura iBeacon válida.");
+      //  return;
+      //}
 
       const uuidStart = ibeaconStart + 5;     // después de 0x15
       const majorStart = uuidStart + 16;
