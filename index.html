@@ -81,8 +81,9 @@
       }
 
       const rows = [
-        ["Fabricante ID", `${ibeaconStart + 1}-${ibeaconStart + 2}`, getRange(ibeaconStart + 1, 2), "Apple (0x004C)"],
-        ["iBeacon Tipo / Longitud", `${ibeaconStart + 3}-${ibeaconStart + 4}`, getRange(ibeaconStart + 3, 2), "Tipo: 0x02, Longitud: 0x15"],
+        ["Company ID", `${ibeaconStart + 1}-${ibeaconStart + 2}`, getRange(ibeaconStart + 1, 2), "Apple (0x004C)"],
+        ["iBeacon Type", `${ibeaconStart + 3}`, getRange(ibeaconStart + 3, 1), "Tipo fijo: 0x02"],
+        ["Payload Length", `${ibeaconStart + 4}`, getRange(ibeaconStart + 4, 1), "Longitud esperada: 0x15 (21 bytes)"],
         ["UUID", `${uuidStart}-${uuidStart + 15}`, getRange(uuidStart, 16), `UUID: ${formatUUID(uuidStart)}`],
         ["Major", `${majorStart}-${majorStart + 1}`, getRange(majorStart, 2), `Decimal: ${getInt16(majorStart)}`],
         ["Minor", `${minorStart}-${minorStart + 1}`, getRange(minorStart, 2), `Decimal: ${getInt16(minorStart)}`],
